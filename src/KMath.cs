@@ -1,6 +1,6 @@
 namespace Krona;
 
-public static class KMath
+public static class UMath
 {
     public static double Clamp(double val, double min, double max)
     {
