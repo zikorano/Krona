@@ -58,8 +58,8 @@ public struct Vector2f : IComparable<Vector2f>
     public Vector2f Clamp(Vector2f min, Vector2f max)
     {
         return new (
-			(float) UMath.Clamp(x, min.x, max.x),
-            (float) UMath.Clamp(y, min.y, max.y));
+			KMath.Clamp(x, min.x, max.x),
+            KMath.Clamp(y, min.y, max.y));
     }
 
     public float Cross(Vector2f with)
@@ -94,19 +94,26 @@ public struct Vector2f : IComparable<Vector2f>
 
     public bool IsNormalized()
     {
-        return false;
-        // use length_squared() instead of length() to avoid sqrt(), makes it more stringent.
-	    // return MathF.IsEqualApprox(length_squared(), 1, (real_t)MathF.);
+	    return KMath.IsEqualApprox(LengthSquared, 1);
     }
 
-    public Vector2f LimitLength( float length=1.0f)
+    public Vector2f LimitLength(float length=1.0f)
     {
-        return Vector2f.ZERO;
+        var l = Length;
+        Vector2f v = this;
+        if (l > 0 && length < l) {
+            v /= l;
+            v *= length;
+        }
+        return v;
     }
 
     public Vector2f Lerp(Vector2f to, float weight)
     {
-        return Vector2f.ZERO;
+        Vector2f res = this;
+        res.x += (weight * (to.x - x));
+        res.y += (weight * (to.y - y));
+        return res;
     }
 
     public Vector2f Normalized()
@@ -116,7 +123,7 @@ public struct Vector2f : IComparable<Vector2f>
 
     public Vector2f Project(Vector2f b)
     {
-        return Vector2f.ZERO;
+        return b * (Dot(b) / b.LengthSquared);
     }
 
     public Vector2f Reflect(Vector2f n)
@@ -124,29 +131,55 @@ public struct Vector2f : IComparable<Vector2f>
         return 2.0f * n * Dot(n) - this;
     }
 
-    public Vector2f Rotated( float angle)
+    public Vector2f Rotated(float angle)
     {
-        return Vector2f.ZERO;
+        float sine = MathF.Sin(angle);
+        float cosi = MathF.Cos(angle);
+        return new Vector2f(
+                x * cosi - y * sine,
+                x * sine + y * cosi);
     }
 
     public Vector2f Round()
     {
-        return Vector2f.ZERO;
+        return new Vector2f (
+            MathF.Round(x),
+            MathF.Round(y));
     }
 
     public Vector2f Sign()
     {
-        return Vector2f.ZERO;
+        return new Vector2f (
+            MathF.Sign(x),
+            MathF.Sign(y));
     }
 
     public Vector2f Slerp(Vector2f to, float weight)
     {
-        return Vector2f.ZERO;
+        float startLengthSq = LengthSquared;
+        float endLengthSq = to.LengthSquared;
+        /*
+        TODO: Replicate "unlikely" function from Godot source
+        if (unlikely(startLengthSq == 0.0f || endLengthSq == 0.0f)) {
+            ...
+        */
+        if (startLengthSq == 0.0f || endLengthSq == 0.0f) {
+            // Zero length vectors have no angle, so the best we can do is either lerp or throw an error.
+            return Lerp(to, weight);
+        }
+        float start_length = MathF.Sqrt(startLengthSq);
+        float result_length = KMath.Lerp(start_length, MathF.Sqrt(endLengthSq), weight);
+        float angle = AngleTo(to);
+        return Rotated(angle * weight) * (result_length / start_length);
     }
 
     public Vector2f Tangent()
     {
-        return Vector2f.ZERO;
+        var s90 = (float)  0.89399666360055789051826949840421;
+        var c90 = (float) -0.44807361612917015236547731439964;
+        return new Vector2f(
+                x * c90 - y * s90,
+                x * s90 + y * c90);
     }
 
     public static Vector2f operator + (Vector2f lhs, Vector2f rhs) 
