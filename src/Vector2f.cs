@@ -133,11 +133,11 @@ public struct Vector2f : IComparable<Vector2f>
 
     public Vector2f Rotated(float angle)
     {
-        float sine = MathF.Sin(angle);
-        float cosi = MathF.Cos(angle);
+        float sina = MathF.Sin(angle);
+        float cosa = MathF.Cos(angle);
         return new Vector2f(
-                x * cosi - y * sine,
-                x * sine + y * cosi);
+                x * cosa - y * sina,
+                x * sina + y * cosa);
     }
 
     public Vector2f Round()
@@ -167,47 +167,29 @@ public struct Vector2f : IComparable<Vector2f>
             // Zero length vectors have no angle, so the best we can do is either lerp or throw an error.
             return Lerp(to, weight);
         }
-        float start_length = MathF.Sqrt(startLengthSq);
-        float result_length = KMath.Lerp(start_length, MathF.Sqrt(endLengthSq), weight);
+        float startLength  = MathF.Sqrt(startLengthSq);
+        float resultLength = KMath.Lerp(startLength, MathF.Sqrt(endLengthSq), weight);
+
         float angle = AngleTo(to);
-        return Rotated(angle * weight) * (result_length / start_length);
+        return Rotated(angle * weight) * (resultLength / startLength);
     }
 
     public Vector2f Tangent()
     {
-        var s90 = (float)  0.89399666360055789051826949840421;
-        var c90 = (float) -0.44807361612917015236547731439964;
-        return new Vector2f(
-                x * c90 - y * s90,
-                x * s90 + y * c90);
+        return this.Rotated(KMath.DegToRad(-90f));
     }
 
-    public static Vector2f operator + (Vector2f lhs, Vector2f rhs) 
-        => new Vector2f(lhs.x + rhs.x, lhs.y + rhs.y);
+    public static Vector2f operator + (Vector2f lhs, Vector2f rhs) => new (lhs.x + rhs.x, lhs.y + rhs.y);
+    public static Vector2f operator - (Vector2f lhs, Vector2f rhs) => new (lhs.x - rhs.x, lhs.y - rhs.y);
 
-    public static Vector2f operator - (Vector2f lhs, Vector2f rhs)
-        => new Vector2f(lhs.x - rhs.x, lhs.y - rhs.y);
+    public static Vector2f operator * (Vector2f lhs, Vector2f rhs) => new (lhs.x * rhs.x, lhs.y * rhs.y);
+    public static Vector2f operator * (float lhs, Vector2f rhs) => new (rhs.x * lhs, rhs.y * lhs);
+    public static Vector2f operator * (Vector2f lhs, float rhs) => new (lhs.x * rhs, lhs.y * rhs);
 
-    public static Vector2f operator * (Vector2f lhs, Vector2f rhs)
-        => new Vector2f(lhs.x * rhs.x, lhs.y * rhs.y);
-
-    public static Vector2f operator * (float lhs, Vector2f rhs)
-        => new Vector2f(rhs.x * lhs, rhs.y * lhs);
-
-    public static Vector2f operator * (Vector2f lhs, float rhs)
-        => new Vector2f(lhs.x * rhs, lhs.y * rhs);
-
-    public static Vector2f operator / (Vector2f lhs, Vector2f rhs)
-        => new Vector2f(lhs.x / rhs.x, lhs.y / rhs.y);
-
-    public static Vector2f operator / (Vector2f lhs, float rhs)
-        => new Vector2f(lhs.x / rhs, lhs.y / rhs);
-
-    public static bool operator == (Vector2f lhs, Vector2f rhs)
-        => lhs.x == rhs.x && lhs.y == rhs.y;
-
-    public static bool operator != (Vector2f lhs, Vector2f rhs)
-        => !(lhs.x == rhs.x && lhs.y == rhs.y);
+    public static Vector2f operator / (Vector2f lhs, Vector2f rhs) => new (lhs.x / rhs.x, lhs.y / rhs.y);
+    public static Vector2f operator / (Vector2f lhs, float rhs) => new (lhs.x / rhs, lhs.y / rhs);
+    public static bool operator == (Vector2f lhs, Vector2f rhs) => lhs.x == rhs.x && lhs.y == rhs.y;
+    public static bool operator != (Vector2f lhs, Vector2f rhs) => !(lhs.x == rhs.x && lhs.y == rhs.y);
 
     public static bool operator <  (Vector2f lhs, Vector2f rhs) => lhs.x == rhs.x ? (lhs.y <  rhs.y) : (lhs.x < rhs.x);
     public static bool operator >  (Vector2f lhs, Vector2f rhs) => lhs.x == rhs.x ? (lhs.y >  rhs.y) : (lhs.x > rhs.x);
@@ -220,7 +202,7 @@ public struct Vector2f : IComparable<Vector2f>
 
     public int CompareTo(Vector2f v)
     {
-        if (v > this) return 1; else return v < this ? -1 : 0;
+        return v > this ? 1 : (v < this ? -1 : 0);
     }
 
     public override string ToString() => $"Vector2f({this.x}, {this.y})";
